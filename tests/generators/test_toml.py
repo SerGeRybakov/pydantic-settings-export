@@ -628,12 +628,8 @@ def test_toml_generator_with_prefix(simple_settings: type[BaseSettings]) -> None
     assert result == expected
 
 
-def test_toml_instance_always_uses_defaults() -> None:
-    """Instance values must NOT appear in the generated TOML — only defaults.
-
-    The TOML generator produces a config template; runtime instance values
-    (e.g. populated from a loaded .env file) must not leak into the output.
-    """
+def test_toml_instance_uses_real_value() -> None:
+    """Instance should use real value as uncommented field."""
 
     class Settings(BaseSettings):
         host: str = Field(default="localhost", description="The host")
@@ -652,23 +648,23 @@ def test_toml_instance_always_uses_defaults() -> None:
 # host: string
 # The host
 # Default: "localhost"
-host = "localhost"
+host = "production.example.com"
 
 # port: integer
 # The port
 # Default: 8080
-port = 8080
+port = 443
 
 # debug: boolean
 # Debug mode
 # Default: false
-debug = false
+debug = true
 """
     assert result == expected
 
 
-def test_toml_instance_shows_default_commented() -> None:
-    """Instance with comment_defaults=True (default) should comment the default."""
+def test_toml_instance_shows_default_in_comment() -> None:
+    """Instance should show default value in the comment section."""
 
     class Settings(BaseSettings):
         host: str = Field(default="localhost", description="The host")
@@ -685,7 +681,7 @@ def test_toml_instance_shows_default_commented() -> None:
 # host: string
 # The host
 # Default: "localhost"
-# host = "localhost"
+host = "production.example.com"
 """
     assert result == expected
 
@@ -716,8 +712,8 @@ def test_toml_instance_same_as_default_behaves_like_class() -> None:
     assert result_class == expected
 
 
-def test_toml_nested_instance_uses_defaults() -> None:
-    """Nested instances should also use defaults, not instance values."""
+def test_toml_nested_instance() -> None:
+    """Nested instances should propagate their values."""
 
     class Database(BaseSettings):
         host: str = Field(default="localhost", description="DB host")
@@ -740,7 +736,7 @@ def test_toml_nested_instance_uses_defaults() -> None:
 # debug: boolean
 # Debug mode
 # Default: false
-debug = false
+debug = true
 
 # Database
 
@@ -748,11 +744,11 @@ debug = false
 # host: string
 # DB host
 # Default: "localhost"
-host = "localhost"
+host = "prod-db.example.com"
 
 # port: integer
 # DB port
 # Default: 5432
-port = 5432
+port = 5433
 """
     assert result == expected
